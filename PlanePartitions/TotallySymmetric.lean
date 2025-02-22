@@ -1,24 +1,24 @@
 import PlanePartitions.Partition
+import Init.Data.Nat.Basic
+import Mathlib.Order.Nat
 
 structure TotallySymmetricPlanePartition (n : Nat) where
   data : PlanePartition n
   invariant_transpose: ∀ (i j : Fin n),
-    let value := data.data[i][j]
-    -- Only need to check when the value is within bounds (is a valid index)
+    let value := data.data[i][j] -- Note: we need .val since data now contains Fin (n+1)
+    -- First transpose - only applies when value < n
     value < n →
-    -- First transpose
     data.data[j][i] = value
-  
+
   invariant_s3: ∀ (i j : Fin n),
-    let value := data.data[i][j]
-    value < n →
-    -- Second cycle: (i,j,value) → (j,i,value) → (j,value,i)
-    data.data[j][value] = i ∧ 
-    data.data[i][value] = j
-
-  -- invariant_ts: ∀ (i : Fin (n - 1)) (j : Fin n),
+    let value := data.data[i][j].val
+    (if h : value < n then
+      -- We only need these equalities when value < n
+      -- When value < n, we can safely create a Fin n from it
+      let value_fin : Fin n := ⟨value, h⟩
+      data.data[j][value_fin] = i.val ∧ 
+      data.data[i][value_fin] = j.val
+    else
+      -- If value = n, no additional conditions needed
+      True)
 deriving DecidableEq, Repr
-
-def mkTotallySymmPlanePartition {n : Nat} (part : PlanePartition n) : Option (TotallySymmetricPlanePartition n) := do
-  sorry
-
