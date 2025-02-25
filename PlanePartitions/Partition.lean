@@ -11,31 +11,12 @@ structure PlanePartition (n : Nat) where
     data[i][j] ≥ data[i][j + (1 : Nat)]
 deriving DecidableEq, Repr
 
--- Computable validation function
-def validPlanePartition {n : Nat} (arr : Vector (Vector (Fin n) n) n) : Bool :=
-  arr.size > 1 &&
-  (List.finRange (n - 1)).all (fun i =>
-    (List.finRange n).all (fun j =>
-      arr[i][j] ≥ arr[i + (1 : Nat)][j]
-    )
-  ) &&
-  (List.finRange n).all (fun i =>
-    (List.finRange (n - 1)).all (fun j =>
-      arr[i][j] ≥ arr[i][j + (1 : Nat)]
-    )
-  )
-
 -- you could also use dif-then-else instead
 def guardP {f} [Alternative f] (p : Prop) [Decidable p] :
     f (PLift p) := if h : p then pure (.up h) else failure
 
 def mkPlanePartition {n : Nat} (arr : Vector (Vector (Fin (n + 1)) n) n) : Option (PlanePartition n) := do
   -- Make sure it's weakly decreasing along the rows
-  -- let rowElementsValid := arr.all (fun row =>
-  --   (List.finRange (n - 1)).all (fun j =>
-  --     row[j] ≥ row[j + (1 : Nat)]
-  --   )
-  -- )
   let rowElementsValid := (List.finRange n).all (fun i =>
     (List.finRange (n - 1)).all (fun j =>
       arr[i][j] ≥ arr[i][j + (1 : Nat)]
@@ -50,13 +31,6 @@ def mkPlanePartition {n : Nat} (arr : Vector (Vector (Fin (n + 1)) n) n) : Optio
     )
   )
   let colValid ← guardP colElementsValid
-
-  let elemHeightValid := (List.finRange n).all (fun i =>
-    (List.finRange n).all (fun j =>
-      arr[i][j] ≤ n
-    )
-  )
-  let heightValid ← guardP elemHeightValid
 
   return {
     data := arr
